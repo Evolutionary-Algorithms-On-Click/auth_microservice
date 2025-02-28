@@ -9,6 +9,8 @@ import (
 	"evolve/util"
 	"fmt"
 	"net/http"
+
+	"aidanwoods.dev/go-paseto"
 )
 
 func main() {
@@ -21,8 +23,13 @@ func main() {
 		return
 	}
 
+	// Initialize key.
+	key := paseto.NewV4AsymmetricSecretKey()
+	config.PrivateKey, config.PublicKey = key, key.Public()
+
 	// Register routes.
 	http.HandleFunc(routes.TEST, controller.Test)
+	http.HandleFunc(routes.REGISTER, controller.Register)
 
 	if err := http.ListenAndServe(config.PORT, nil); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err))

@@ -5,5 +5,6 @@ const (
 )
 
 const (
-	TEST = BASE + "/test"
+	TEST     = BASE + "/test"
+	REGISTER = BASE + "/register"
 )
