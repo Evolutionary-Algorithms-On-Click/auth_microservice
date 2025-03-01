@@ -1,4 +1,4 @@
-package modules
+package register
 
 import (
 	"context"
@@ -60,30 +60,38 @@ func (r *RegisterReq) Register(ctx context.Context) (string, error) {
 
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
-		logger.Error("Register: failed to get pool connection")
-		return "", err
+		logger.Error(fmt.Sprintf("Register: failed to get pool connection: %v", err))
+		return "", fmt.Errorf("something went wrong")
 	}
 
-	// Check if any user same email/username is unique.
+	// Check if user already registered.
 	if isNewUser := dbutil.IsNewUser(ctx, r.Email, r.UserName, db); !isNewUser {
-		return "", fmt.Errorf("user already exists")
+		return "", fmt.Errorf("already registered")
 	}
 
 	// Delete user if already exists in registerOtp table.
 	if _, err := db.Exec(ctx, "DELETE FROM registerOtp WHERE email = $1", r.Email); err != nil {
-		logger.Error("Register: failed to delete from registerOtp")
-		return "", err
+		logger.Error(fmt.Sprintf("Register: failed to delete from registerOtp: %v", err))
+		return "", fmt.Errorf("something went wrong")
 	}
 
-	if _, err := db.Exec(ctx, "INSERT INTO registerOtp(email, otp, purpose) VALUES($1, $2, $3)", r.Email, auth.GenerateOTP(), "register"); err != nil {
+	otp := auth.GenerateOTP()
+	ct, err := db.Exec(ctx, "INSERT INTO registerOtp(email, otp) VALUES($1, $2)", r.Email, otp)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Register: failed to insert into registerOtp: %v", err))
+		return "", fmt.Errorf("something went wrong")
+	}
+
+	if ct.RowsAffected() == 0 {
 		logger.Error("Register: failed to insert into registerOtp")
-		return "", err
+		return "", fmt.Errorf("something went wrong")
 	}
 
 	// TODO: Send OTP to user's email.
+	logger.Info(fmt.Sprintf("OTP: %v", otp))
 
 	// Generate Token.
-	token, err := auth.Token(map[string]any{
+	token, err := auth.Token(map[string]string{
 		"email":    r.Email,
 		"userName": r.UserName,
 		"fullName": r.FullName,
@@ -91,7 +99,8 @@ func (r *RegisterReq) Register(ctx context.Context) (string, error) {
 		"purpose":  "register",
 	})
 	if err != nil {
-		return "", err
+		logger.Error(fmt.Sprintf("Register: failed to generate token: %v", err))
+		return "", fmt.Errorf("something went wrong")
 	}
 
 	return token, nil

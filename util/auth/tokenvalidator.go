@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"evolve/config"
 	"evolve/util"
+	"strings"
 
 	"aidanwoods.dev/go-paseto"
 )
 
-func ValidateToken(token string) (map[string]any, error) {
+func ValidateToken(token string) (map[string]string, error) {
 	var logger = util.NewLogger()
 
 	// logger.Info(token)
@@ -22,13 +23,19 @@ func ValidateToken(token string) (map[string]any, error) {
 	}
 
 	payLoadJSON := json.NewDecoder(bytes.NewReader(payLoad.ClaimsJSON()))
-	var payLoadMap map[string]any
+	payLoadMap := make(map[string]string)
 	if err = payLoadJSON.Decode(&payLoadMap); err != nil {
 		logger.Error("failed to decode token payload")
 		return nil, err
 	}
 
-	// logger.Info(fmt.Sprintf("Token payload: %v", payLoadMap))
+	userJson := json.NewDecoder(strings.NewReader(payLoadMap["user"]))
+	userMap := make(map[string]string)
+	if err = userJson.Decode(&userMap); err != nil {
+		logger.Error("failed to decode user json")
+		return nil, err
+	}
 
-	return payLoadMap, nil
+	// logger.Info(fmt.Sprintf("Token payload: %v", payLoadMap))
+	return userMap, nil
 }

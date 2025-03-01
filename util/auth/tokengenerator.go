@@ -9,7 +9,7 @@ import (
 	"aidanwoods.dev/go-paseto"
 )
 
-func Token(payload map[string]any) (string, error) {
+func Token(payload map[string]string) (string, error) {
 	var logger = util.NewLogger()
 
 	userJson, err := json.Marshal(payload)

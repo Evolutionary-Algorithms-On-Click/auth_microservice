@@ -30,10 +30,11 @@ func main() {
 	// Register routes.
 	http.HandleFunc(routes.TEST, controller.Test)
 	http.HandleFunc(routes.REGISTER, controller.Register)
+	http.HandleFunc(routes.VERIFY, controller.Verify)
 
+	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", config.PORT))
 	if err := http.ListenAndServe(config.PORT, nil); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err))
 		return
 	}
-	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", config.PORT))
 }

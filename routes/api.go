@@ -7,4 +7,5 @@ const (
 const (
 	TEST     = BASE + "/test"
 	REGISTER = BASE + "/register"
+	VERIFY   = REGISTER + "/verify"
 )
