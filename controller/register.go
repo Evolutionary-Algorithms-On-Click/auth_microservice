@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"evolve/modules/register"
 	"evolve/util"
 	"evolve/util/auth"
@@ -24,7 +23,7 @@ func Register(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	token, err := regReq.Register(context.Background())
+	token, err := regReq.Register(req.Context())
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
@@ -76,7 +75,7 @@ func Verify(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = verifyReq.Verify(context.Background(), payLoad)
+	err = verifyReq.Verify(req.Context(), payLoad)
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
