@@ -1,7 +1,17 @@
 # evolve_auth
 Go Backend for auth.
 
-## Setup
+# Dev Setup
+
+## Start CockroachDB
+
+1. Install CockroachDB
+2. Run the below command to start a single node cockroachdb instance.
+```sh
+cockroach start-single-node --insecure --listen-addr=localhost:26257 --http-addr=localhost:8080
+```
+
+## Start the server
 
 1. Install Go
 2. Set Environment Variables. Execute the following command in the root directory of the project.
