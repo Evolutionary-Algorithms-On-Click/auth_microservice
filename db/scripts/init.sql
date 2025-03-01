@@ -1,0 +1,22 @@
+DROP TABLE IF EXISTS registerOtp;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    userName STRING UNIQUE NOT NULL,
+    fullName STRING,
+    email STRING UNIQUE NOT NULL,
+    role STRING DEFAULT 'user',
+    password STRING NOT NULL,
+    accountStatus STRING DEFAULT 'active',
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS registerOtp (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email STRING UNIQUE NOT NULL,
+    otp STRING NOT NULL,
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);

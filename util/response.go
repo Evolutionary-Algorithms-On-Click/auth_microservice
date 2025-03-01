@@ -13,7 +13,7 @@ type Response struct {
 }
 
 // JSONResponse writes a JSON response to the http.ResponseWriter.
-func JSONResponse(w http.ResponseWriter, code int, message string, data interface{}) {
+func JSONResponse(w http.ResponseWriter, code int, message string, data any) {
 	response := Response{
 		Code:    code,
 		Message: message,
