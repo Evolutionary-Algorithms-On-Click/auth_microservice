@@ -7,6 +7,7 @@ import (
 	"evolve/util"
 	"evolve/util/auth"
 	dbutil "evolve/util/db/user"
+	mailer "evolve/util/mail"
 	"fmt"
 )
 
@@ -87,8 +88,11 @@ func (r *RegisterReq) Register(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("something went wrong")
 	}
 
-	// TODO: Send OTP to user's email.
-	logger.Info(fmt.Sprintf("OTP: %v", otp))
+	// logger.Info(fmt.Sprintf("OTP: %v", otp))
+	if err := mailer.OTPVerifyEmail(r.Email, otp); err != nil {
+		logger.Error(fmt.Sprintf("Register: failed to send OTP email: %v", err))
+		return "", fmt.Errorf("something went wrong - check your email again")
+	}
 
 	// Generate Token.
 	token, err := auth.Token(map[string]string{
