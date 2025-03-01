@@ -31,6 +31,7 @@ func main() {
 	http.HandleFunc(routes.TEST, controller.Test)
 	http.HandleFunc(routes.REGISTER, controller.Register)
 	http.HandleFunc(routes.VERIFY, controller.Verify)
+	http.HandleFunc(routes.LOGIN, controller.Login)
 
 	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", config.PORT))
 	if err := http.ListenAndServe(config.PORT, nil); err != nil {
