@@ -3,7 +3,8 @@ package config
 import "aidanwoods.dev/go-paseto"
 
 const (
-	PORT = ":5000"
+	HTTP_PORT = ":5000"
+	GRPC_PORT = ":5001"
 )
 
 var (
