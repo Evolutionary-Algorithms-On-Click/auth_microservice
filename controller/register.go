@@ -35,6 +35,7 @@ func Register(res http.ResponseWriter, req *http.Request) {
 		Name:     "t",
 		Value:    token,
 		Path:     "/",
+		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(48 * time.Hour),
 	})
