@@ -1,6 +1,7 @@
+DROP TABLE IF EXISTS access;
+DROP TABLE IF EXISTS run;
 DROP TABLE IF EXISTS registerOtp;
 DROP TABLE IF EXISTS users;
-
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     userName STRING UNIQUE NOT NULL,
@@ -12,11 +13,32 @@ CREATE TABLE IF NOT EXISTS users (
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS registerOtp (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email STRING UNIQUE NOT NULL,
     otp STRING NOT NULL,
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+CREATE TABLE IF NOT EXISTS run (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name STRING NOT NULL,
+    description STRING,
+    status STRING DEFAULT 'scheduled',
+    -- 'scheduled', 'running', 'completed', 'failed'
+    type STRING NOT NULL,
+    -- 'ea', 'gp', 'ml', 'pso'
+    command STRING NOT NULL,
+    createdBy UUID REFERENCES users(id),
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+CREATE TABLE IF NOT EXISTS access (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    runID UUID REFERENCES run(id),
+    userID UUID REFERENCES users(id),
+    mode STRING DEFAULT 'read',
+    -- 'read', 'write'
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
