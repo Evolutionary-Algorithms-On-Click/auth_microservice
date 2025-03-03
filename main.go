@@ -16,6 +16,7 @@ import (
 	"runtime"
 
 	"aidanwoods.dev/go-paseto"
+	"github.com/rs/cors"
 	"google.golang.org/grpc"
 )
 
@@ -27,7 +28,13 @@ func serveHTTP(logger *util.Logger) {
 	http.HandleFunc(routes.LOGIN, controller.Login)
 
 	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", config.HTTP_PORT))
-	if err := http.ListenAndServe(config.HTTP_PORT, nil); err != nil {
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	}).Handler(http.DefaultServeMux)
+	if err := http.ListenAndServe(config.HTTP_PORT, corsHandler); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err))
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"evolve/util"
 	"evolve/util/auth"
 	"net/http"
+	"time"
 )
 
 func Register(res http.ResponseWriter, req *http.Request) {
@@ -35,6 +36,8 @@ func Register(res http.ResponseWriter, req *http.Request) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(48 * time.Hour),
 	})
 
 	util.JSONResponse(res, http.StatusOK, "Success", nil)

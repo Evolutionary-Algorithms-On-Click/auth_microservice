@@ -53,7 +53,7 @@ func (l *LoginReq) Login(ctx context.Context) (string, error) {
 
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to get pool connection: %v", err))
+		logger.Error(fmt.Sprintf("Login: failed to get pool connection: %v", err))
 		return "", fmt.Errorf("something went wrong")
 	}
 
@@ -61,10 +61,10 @@ func (l *LoginReq) Login(ctx context.Context) (string, error) {
 	var id uuid.UUID
 	var role string
 
-	err = db.QueryRow(ctx, "SELECT id, role FROM users WHERE username = $1 OR email = $2 AND password = $3", l.UserName, l.Email, l.Password).Scan(&id, &role)
+	err = db.QueryRow(ctx, "SELECT id, role FROM users WHERE (username = $1 OR email = $2) AND password = $3", l.UserName, l.Email, l.Password).Scan(&id, &role)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to query user: %v", err))
-		return "", fmt.Errorf("something went wrong")
+		logger.Error(fmt.Sprintf("Login: failed to query user: %v", err))
+		return "", fmt.Errorf("invalid username/email or password")
 	}
 
 	token, err := auth.Token(map[string]string{
@@ -73,7 +73,7 @@ func (l *LoginReq) Login(ctx context.Context) (string, error) {
 		"purpose": "login",
 	})
 	if err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to generate token: %v", err))
+		logger.Error(fmt.Sprintf("Login: failed to generate token: %v", err))
 		return "", fmt.Errorf("something went wrong")
 	}
 

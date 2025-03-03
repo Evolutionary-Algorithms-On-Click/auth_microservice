@@ -8,6 +8,7 @@ require (
 	aidanwoods.dev/go-paseto v1.5.4
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
+	github.com/rs/cors v1.11.1
 	google.golang.org/grpc v1.70.0
 	google.golang.org/protobuf v1.36.5
 )
