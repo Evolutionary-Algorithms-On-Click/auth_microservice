@@ -34,11 +34,11 @@ CREATE TABLE IF NOT EXISTS run (
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
 CREATE TABLE IF NOT EXISTS access (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     runID UUID REFERENCES run(id),
     userID UUID REFERENCES users(id),
     mode STRING DEFAULT 'read',
     -- 'read', 'write'
+    PRIMARY KEY (runID, userID),
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
