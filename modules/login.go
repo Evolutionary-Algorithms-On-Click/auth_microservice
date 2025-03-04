@@ -6,6 +6,7 @@ import (
 	"evolve/db/connection"
 	"evolve/util"
 	"evolve/util/auth"
+	dbutil "evolve/util/db/user"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -44,17 +45,17 @@ func (l *LoginReq) validate() error {
 	return nil
 }
 
-func (l *LoginReq) Login(ctx context.Context) (string, error) {
+func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 	var logger = util.NewLogger()
 
 	if err := l.validate(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Login: failed to get pool connection: %v", err))
-		return "", fmt.Errorf("something went wrong")
+		return nil, fmt.Errorf("something went wrong")
 	}
 
 	// id is UUID(16 bytes) Google's UUID.
@@ -64,9 +65,16 @@ func (l *LoginReq) Login(ctx context.Context) (string, error) {
 	err = db.QueryRow(ctx, "SELECT id, role FROM users WHERE (username = $1 OR email = $2) AND password = $3", l.UserName, l.Email, l.Password).Scan(&id, &role)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Login: failed to query user: %v", err))
-		return "", fmt.Errorf("invalid username/email or password")
+		return nil, fmt.Errorf("invalid username/email or password")
 	}
 
+	user, err := dbutil.UserById(ctx, id.String(), db)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Login: failed to get user by id: %v", err))
+		return nil, fmt.Errorf("user not found")
+	}
+
+	// Generate token.
 	token, err := auth.Token(map[string]string{
 		"id":      id.String(),
 		"role":    role,
@@ -74,8 +82,10 @@ func (l *LoginReq) Login(ctx context.Context) (string, error) {
 	})
 	if err != nil {
 		logger.Error(fmt.Sprintf("Login: failed to generate token: %v", err))
-		return "", fmt.Errorf("something went wrong")
+		return nil, fmt.Errorf("something went wrong")
 	}
 
-	return token, nil
+	user["token"] = token
+
+	return user, nil
 }
