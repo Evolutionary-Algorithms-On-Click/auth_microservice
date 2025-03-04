@@ -23,7 +23,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	token, err := loginReq.Login(req.Context())
+	user, err := loginReq.Login(req.Context())
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
@@ -32,12 +32,14 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	// Set the token in cookie.
 	http.SetCookie(res, &http.Cookie{
 		Name:     "t",
-		Value:    token,
+		Value:    user["token"],
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(48 * time.Hour),
 	})
 
-	util.JSONResponse(res, http.StatusOK, "Success", nil)
+	delete(user, "token")
+
+	util.JSONResponse(res, http.StatusOK, "Success", user)
 }
