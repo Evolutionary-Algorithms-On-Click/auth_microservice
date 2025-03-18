@@ -2,14 +2,14 @@
 
 services:
   auth:
-    image: evoc/auth:latest
+    image: ghcr.io/evolutionary-algorithms-on-click/auth_microservice:main
     ports:
       - "5000:5000"
       - "5001:5001"
     environment:
       DATABASE_URL : postgresql://root@host.docker.internal:26257/defaultdb?sslmode=disable
-      MAILER_EMAIL : <your-email>
-      MAILER_PASSWORD : <your-password>
+      MAILER_EMAIL : <mailer-email>
+      MAILER_PASSWORD : <mailer-password>
       FRONTEND_URL : http://localhost:3000
       HTTP_PORT : 5000
       GRPC_PORT : 5001
