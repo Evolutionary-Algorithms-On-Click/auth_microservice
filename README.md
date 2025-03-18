@@ -20,6 +20,8 @@ export DATABASE_URL=<database_url>
 export MAILER_EMAIL=<mailer_email>
 export MAILER_PASSWORD=<mailer_password>
 export FRONTEND_URL=<frontend_url>
+export HTTP_PORT=5000
+export GRPC_PORT=5001
 ```
 3. Install the protobuf-grpc compiler.
 ```sh
