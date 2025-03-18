@@ -11,6 +11,6 @@ env:
   
 jobs:
   main-workflow:
-    uses: Evolutionary-Algorithms-On-Click/operations/blob/main/.github/workflows/docker-publish.yml@main
+    uses: Evolutionary-Algorithms-On-Click/operations/.github/workflows/docker-publish.yml@main
     with:
       branch: ${{ github.ref }}
