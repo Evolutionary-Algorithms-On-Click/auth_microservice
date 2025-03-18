@@ -1,0 +1,16 @@
+# fetch image from local registry and run container
+
+services:
+  auth:
+    image: evoc/auth:latest
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      DATABASE_URL : postgresql://root@host.docker.internal:26257/defaultdb?sslmode=disable
+      MAILER_EMAIL : <your-email>
+      MAILER_PASSWORD : <your-password>
+      FRONTEND_URL : http://localhost:3000
+      HTTP_PORT : 5000
+      GRPC_PORT : 5001
+    
