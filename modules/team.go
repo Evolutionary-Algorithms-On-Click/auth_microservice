@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+//Struct for a Team
 type Team struct {
 	ID          string    `json:"id,omitempty"`
 	Name        string    `json:"name"`
