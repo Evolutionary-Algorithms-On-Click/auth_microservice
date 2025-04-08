@@ -67,12 +67,11 @@ CREATE TABLE IF NOT EXISTS team_members (
 CREATE INDEX IF NOT EXISTS idx_teams_createdBy ON teams(createdBy);
 CREATE INDEX IF NOT EXISTS idx_team_members_userID ON team_members(userID);
 
--- Optional: Add a table for team_run_access if you want to share runs with entire teams
+-- Updated team_run_access table without grantedBy
 CREATE TABLE IF NOT EXISTS team_run_access (
     runID UUID REFERENCES run(id) ON DELETE CASCADE,
     teamID UUID REFERENCES teams(id) ON DELETE CASCADE,
     mode STRING DEFAULT 'read', -- 'read', 'write'
-    grantedBy UUID REFERENCES users(id),
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     PRIMARY KEY (runID, teamID)
