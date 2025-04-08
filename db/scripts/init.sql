@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS team_run_access;
+DROP TABLE IF EXISTS team_members;
+DROP TABLE IF EXISTS teams;
 -- Existing tables
 DROP TABLE IF EXISTS access;
 DROP TABLE IF EXISTS run;
