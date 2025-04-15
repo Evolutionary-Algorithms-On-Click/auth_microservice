@@ -39,14 +39,14 @@ func serveHTTP(logger *util.Logger) {
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	}).Handler(http.DefaultServeMux)
-	if err := http.ListenAndServe("0.0.0.0" + HTTP_PORT, corsHandler); err != nil {
+	if err := http.ListenAndServe(HTTP_PORT, corsHandler); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err))
 		return
 	}
 }
 
 func serveGRPC(logger *util.Logger) {
-	lis, err := net.Listen("tcp", "0.0.0.0" + GRPC_PORT)
+	lis, err := net.Listen("tcp", GRPC_PORT)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to listen TCP in GRPC PORT%v : %v", GRPC_PORT, err))
 		return
