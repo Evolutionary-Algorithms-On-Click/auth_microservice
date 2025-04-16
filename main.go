@@ -31,6 +31,7 @@ func serveHTTP(logger *util.Logger) {
 	http.HandleFunc(routes.REGISTER, controller.Register)
 	http.HandleFunc(routes.VERIFY, controller.Verify)
 	http.HandleFunc(routes.LOGIN, controller.Login)
+	http.HandleFunc(routes.TEAMS, controller.Teams)
 
 	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", HTTP_PORT))
 	corsHandler := cors.New(cors.Options{
