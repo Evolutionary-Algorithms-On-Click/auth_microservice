@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-
 	"aidanwoods.dev/go-paseto"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
@@ -66,8 +65,8 @@ func main() {
 	HTTP_PORT = fmt.Sprintf(":%v", os.Getenv("HTTP_PORT"))
 	GRPC_PORT = fmt.Sprintf(":%v", os.Getenv("GRPC_PORT"))
 
-	var logger = util.NewLogger()
-
+	
+	logger := util.Log_var
 	// Initialize db with schema.
 	if err := db.InitDb(context.Background()); err != nil {
 		logger.Error("failed to init db")

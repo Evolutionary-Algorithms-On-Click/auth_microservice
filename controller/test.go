@@ -6,7 +6,8 @@ import (
 )
 
 func Test(res http.ResponseWriter, req *http.Request) {
-	var logger = util.NewLogger()
+	
+	logger := util.Log_var
 	switch req.Method {
 	case "GET":
 		logger.Info("GET /api/test called.")

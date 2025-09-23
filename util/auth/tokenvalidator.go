@@ -11,8 +11,8 @@ import (
 )
 
 func ValidateToken(token string) (map[string]string, error) {
-	var logger = util.NewLogger()
-
+	
+	logger := util.Log_var
 	// logger.Info(token)
 
 	parser := paseto.NewParserForValidNow()

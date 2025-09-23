@@ -53,3 +53,5 @@ func (l *Logger) Warn(msg string) {
 func (l *Logger) Error(msg string) {
 	l.Log(ERROR, msg)
 }
+
+var Log_var =  NewLogger()

@@ -46,8 +46,8 @@ func (l *LoginReq) validate() error {
 }
 
 func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
-	var logger = util.NewLogger()
-
+	
+	logger := util.Log_var
 	if err := l.validate(); err != nil {
 		return nil, err
 	}

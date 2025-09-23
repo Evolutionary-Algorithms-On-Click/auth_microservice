@@ -8,7 +8,8 @@ import (
 )
 
 func Login(res http.ResponseWriter, req *http.Request) {
-	var logger = util.NewLogger()
+	
+	logger := util.Log_var
 	logger.Info("Login API called.")
 
 	data, err := util.Body(req)

@@ -8,7 +8,8 @@ import (
 )
 
 func InitDb(ctx context.Context) error {
-	var logger = util.NewLogger()
+	
+	logger := util.Log_var
 	conn, err := connection.PoolConn(ctx)
 	if err != nil {
 		logger.Error("initDb: failed to get pool connection")

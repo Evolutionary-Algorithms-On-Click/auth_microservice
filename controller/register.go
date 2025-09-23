@@ -9,7 +9,8 @@ import (
 )
 
 func Register(res http.ResponseWriter, req *http.Request) {
-	var logger = util.NewLogger()
+	
+	logger := util.Log_var
 	logger.Info("Register API called.")
 
 	data, err := util.Body(req)
