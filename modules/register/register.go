@@ -53,8 +53,8 @@ func (r *RegisterReq) validate() error {
 }
 
 func (r *RegisterReq) Register(ctx context.Context) (string, error) {
-	
-	logger := util.LogVar
+
+	logger := util.SharedLogger
 
 	if err := r.validate(); err != nil {
 		return "", err

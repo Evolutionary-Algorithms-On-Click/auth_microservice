@@ -1,4 +1,3 @@
-
 package util
 
 import (
@@ -20,6 +19,12 @@ type LoggerService struct {
 	Logger zerolog.Logger
 	Env    string
 }
+
+// environments
+const (
+	EnvDevelopment = "DEVELOPMENT"
+	EnvProduction  = "PRODUCTION"
+)
 
 type ILoggerService interface {
 	// Function to enrich each log with data
@@ -52,7 +57,7 @@ func InitLogger(env string) (*LoggerService, error) {
 	var output io.Writer
 
 	switch env {
-	case "DEVELOPMENT":
+	case EnvDevelopment:
 		file, err := os.OpenFile("dev.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
 			return nil, err
@@ -90,7 +95,7 @@ func InitLogger(env string) (*LoggerService, error) {
 			NoColor: true,
 		}
 		output = zerolog.MultiLevelWriter(consoleWriter, fileWriter)
-	case "PRODUCTION":
+	case EnvProduction:
 		file, err := os.OpenFile("prod.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
 			return nil, err
@@ -158,7 +163,7 @@ func (l *LoggerService) enrich(req *http.Request, e *zerolog.Event) *zerolog.Eve
 }
 
 func (l *LoggerService) DebugCtx(req *http.Request, msg string) {
-	if l.Env == "PRODUCTION" {
+	if l.Env == EnvProduction {
 		return
 	}
 	event := l.Logger.WithLevel(zerolog.DebugLevel)
@@ -198,7 +203,7 @@ func (l *LoggerService) SuccessCtx(req *http.Request) {
 }
 
 func (l *LoggerService) Debug(msg string) {
-	if l.Env == "PRODUCTION" {
+	if l.Env == EnvProduction {
 		return
 	}
 	l.Logger.WithLevel(zerolog.DebugLevel).Msg(msg)
@@ -269,9 +274,9 @@ func (l *LoggerService) LogMiddleware(next http.Handler) http.Handler {
 			Interface("query-params", r.URL.Query()).
 			Str("ip", clientIP).
 			Str("user-agent", r.Header.Get("User-Agent"))
-		
+
 		event.Send()
 	})
 }
 
-var LogVar, err = InitLogger("PRODUCTION")
+var SharedLogger, err = InitLogger(os.Getenv("ENV"))

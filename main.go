@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aidanwoods.dev/go-paseto"
 	"context"
 	"evolve/config"
 	"evolve/controller"
@@ -10,13 +11,12 @@ import (
 	"evolve/routes"
 	"evolve/util"
 	"fmt"
+	"github.com/rs/cors"
+	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os"
 	"runtime"
-	"aidanwoods.dev/go-paseto"
-	"github.com/rs/cors"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -38,7 +38,7 @@ func serveHTTP(logger *util.LoggerService) {
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	}).Handler(http.DefaultServeMux)
-	
+
 	handler := util.Log.LogMiddleware(corsHandler)
 
 	if err := http.ListenAndServe(HTTP_PORT, handler); err != nil {
@@ -68,10 +68,8 @@ func main() {
 	HTTP_PORT = fmt.Sprintf(":%v", os.Getenv("HTTP_PORT"))
 	GRPC_PORT = fmt.Sprintf(":%v", os.Getenv("GRPC_PORT"))
 
-	logger := util.LogVar
-	
-	
-	
+	logger := util.SharedLogger
+
 	// Initialize db with schema.
 	if err := db.InitDb(context.Background()); err != nil {
 		logger.Error("failed to init db", err)

@@ -14,8 +14,8 @@ var (
 )
 
 func email(to string, subject string, body string) error {
-	
-	logger := util.LogVar
+
+	logger := util.SharedLogger
 	if err := smtp.SendMail(
 		fmt.Sprintf("%s:%s", hostname, port),
 		smtp.PlainAuth("", from, os.Getenv("MAILER_PASSWORD"), hostname),

@@ -36,8 +36,8 @@ func (r *VerifyReq) validate() error {
 }
 
 func (r *VerifyReq) Verify(ctx context.Context, user map[string]string) error {
-	
-	logger := util.LogVar
+
+	logger := util.SharedLogger
 	if err := r.validate(); err != nil {
 		return err
 	}
