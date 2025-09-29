@@ -31,6 +31,7 @@ func serveHTTP(logger *util.LoggerService) {
 	http.HandleFunc(routes.VERIFY, controller.Verify)
 	http.HandleFunc(routes.LOGIN, controller.Login)
 
+	
 	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", HTTP_PORT))
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("FRONTEND_URL")}, // Allowing frontend to access the server.
@@ -67,8 +68,15 @@ func main() {
 
 	HTTP_PORT = fmt.Sprintf(":%v", os.Getenv("HTTP_PORT"))
 	GRPC_PORT = fmt.Sprintf(":%v", os.Getenv("GRPC_PORT"))
+	
+	logger, err := util.InitLogger(os.Getenv("ENV")) // "DEVELOPMENT" or "PRODUCTION"
+	if err != nil {
+		fmt.Println("failed to init logger:", err)
+		return
+	}
+	util.Log = logger
 
-	logger := util.SharedLogger
+	
 
 	// Initialize db with schema.
 	if err := db.InitDb(context.Background()); err != nil {
@@ -81,8 +89,8 @@ func main() {
 	key := paseto.NewV4AsymmetricSecretKey()
 	config.PrivateKey, config.PublicKey = key, key.Public()
 
-	go serveHTTP(logger)
-	go serveGRPC(logger)
+	go serveHTTP(util.Log)
+	go serveGRPC(util.Log)
 
 	runtime.Goexit()
 }
