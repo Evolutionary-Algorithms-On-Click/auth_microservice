@@ -47,14 +47,14 @@ func (l *LoginReq) validate() error {
 
 func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 	
-	logger := util.Log_var
+	logger := util.LogVar
 	if err := l.validate(); err != nil {
 		return nil, err
 	}
 
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Login: failed to get pool connection: %v", err))
+		logger.Error(fmt.Sprintf("Login: failed to get pool connection: %v", err), err)
 		return nil, fmt.Errorf("something went wrong")
 	}
 
@@ -64,13 +64,13 @@ func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 
 	err = db.QueryRow(ctx, "SELECT id, role FROM users WHERE (username = $1 OR email = $2) AND password = $3", l.UserName, l.Email, l.Password).Scan(&id, &role)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Login: failed to query user: %v", err))
+		logger.Error(fmt.Sprintf("Login: failed to query user: %v", err), err)
 		return nil, fmt.Errorf("invalid username/email or password")
 	}
 
 	user, err := dbutil.UserById(ctx, id.String(), db)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Login: failed to get user by id: %v", err))
+		logger.Error(fmt.Sprintf("Login: failed to get user by id: %v", err), err)
 		return nil, fmt.Errorf("user not found")
 	}
 
@@ -81,7 +81,7 @@ func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 		"purpose": "login",
 	})
 	if err != nil {
-		logger.Error(fmt.Sprintf("Login: failed to generate token: %v", err))
+		logger.Error(fmt.Sprintf("Login: failed to generate token: %v", err), err)
 		return nil, fmt.Errorf("something went wrong")
 	}
 

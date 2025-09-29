@@ -37,14 +37,14 @@ func (r *VerifyReq) validate() error {
 
 func (r *VerifyReq) Verify(ctx context.Context, user map[string]string) error {
 	
-	logger := util.Log_var
+	logger := util.LogVar
 	if err := r.validate(); err != nil {
 		return err
 	}
 
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf("RegisterVerify: failed to get pool connection: %v", err))
+		logger.Error(fmt.Sprintf("RegisterVerify: failed to get pool connection: %v", err), err)
 		return fmt.Errorf("something went wrong")
 	}
 
@@ -55,7 +55,7 @@ func (r *VerifyReq) Verify(ctx context.Context, user map[string]string) error {
 
 	ct, err := db.Exec(ctx, "DELETE FROM registerOtp WHERE email = $1 AND otp = $2", user["email"], r.OTP)
 	if err != nil {
-		logger.Error(fmt.Sprintf("RegisterVerify: failed to delete from registerOtp: %v", err))
+		logger.Error(fmt.Sprintf("RegisterVerify: failed to delete from registerOtp: %v", err), err)
 		return fmt.Errorf("something went wrong")
 	}
 
@@ -65,7 +65,7 @@ func (r *VerifyReq) Verify(ctx context.Context, user map[string]string) error {
 
 	// Insert user into user table.
 	if _, err := db.Exec(ctx, "INSERT INTO users (email, userName, fullName, password) VALUES($1, $2, $3, $4)", user["email"], user["userName"], user["fullName"], user["password"]); err != nil {
-		logger.Error(fmt.Sprintf("RegisterVerify: failed to insert into users: %v", err))
+		logger.Error(fmt.Sprintf("RegisterVerify: failed to insert into users: %v", err), err)
 		return fmt.Errorf("something went wrong")
 	}
 
