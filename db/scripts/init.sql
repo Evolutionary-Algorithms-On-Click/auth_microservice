@@ -1,7 +1,10 @@
+DROP TABLE IF EXISTS teamMembers;
+DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS access;
 DROP TABLE IF EXISTS run;
 DROP TABLE IF EXISTS registerOtp;
 DROP TABLE IF EXISTS users;
+ 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     userName STRING UNIQUE NOT NULL,
@@ -39,6 +42,24 @@ CREATE TABLE IF NOT EXISTS access (
     mode STRING DEFAULT 'read',
     -- 'read', 'write'
     PRIMARY KEY (runID, userID),
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+
+--table to maintain team metadata
+CREATE TABLE IF NOT EXISTS team (
+    teamID UUID PRIMARY KEY,
+    createdBy STRING NOT NULL,
+    role STRING,
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+
+--table to maintain team members associated to that team
+CREATE TABLE IF NOT EXISTS teamMembers (
+    memberId UUID REFERENCES users(id),
+    teamID UUID REFERENCES team(teamID),
+    PRIMARY KEY (memberId, teamID),
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );

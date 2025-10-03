@@ -9,8 +9,9 @@ import (
 )
 
 func Register(res http.ResponseWriter, req *http.Request) {
-	var logger = util.NewLogger()
-	logger.Info("Register API called.")
+
+	logger := util.SharedLogger
+	logger.InfoCtx(req, "Register API called.")
 
 	data, err := util.Body(req)
 	if err != nil {
@@ -44,8 +45,10 @@ func Register(res http.ResponseWriter, req *http.Request) {
 }
 
 func Verify(res http.ResponseWriter, req *http.Request) {
-	var logger = util.NewLogger()
-	logger.Info("Verify API called.")
+	// var logger = util.NewLogger()
+
+	logger := util.SharedLogger
+	logger.InfoCtx(req, "Verify API called.")
 
 	token, err := req.Cookie("t")
 	if err != nil {

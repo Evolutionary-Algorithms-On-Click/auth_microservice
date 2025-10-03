@@ -53,7 +53,8 @@ func (r *RegisterReq) validate() error {
 }
 
 func (r *RegisterReq) Register(ctx context.Context) (string, error) {
-	var logger = util.NewLogger()
+
+	logger := util.SharedLogger
 
 	if err := r.validate(); err != nil {
 		return "", err
@@ -61,7 +62,7 @@ func (r *RegisterReq) Register(ctx context.Context) (string, error) {
 
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to get pool connection: %v", err))
+		logger.Error(fmt.Sprintf("Register: failed to get pool connection: %v", err), err)
 		return "", fmt.Errorf("something went wrong")
 	}
 
@@ -72,25 +73,25 @@ func (r *RegisterReq) Register(ctx context.Context) (string, error) {
 
 	// Delete user if already exists in registerOtp table.
 	if _, err := db.Exec(ctx, "DELETE FROM registerOtp WHERE email = $1", r.Email); err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to delete from registerOtp: %v", err))
+		logger.Error(fmt.Sprintf("Register: failed to delete from registerOtp: %v", err), err)
 		return "", fmt.Errorf("something went wrong")
 	}
 
 	otp := auth.GenerateOTP()
 	ct, err := db.Exec(ctx, "INSERT INTO registerOtp(email, otp) VALUES($1, $2)", r.Email, otp)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to insert into registerOtp: %v", err))
+		logger.Error(fmt.Sprintf("Register: failed to insert into registerOtp: %v", err), err)
 		return "", fmt.Errorf("something went wrong")
 	}
 
 	if ct.RowsAffected() == 0 {
-		logger.Error("Register: failed to insert into registerOtp")
+		logger.Error("Register: failed to insert into registerOtp", err)
 		return "", fmt.Errorf("something went wrong")
 	}
 
 	logger.Info(fmt.Sprintf("OTP: %v", otp))
 	if err := mailer.OTPVerifyEmail(r.Email, otp); err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to send OTP email: %v", err))
+		logger.Error(fmt.Sprintf("Register: failed to send OTP email: %v", err), err)
 		return "", fmt.Errorf("something went wrong - check your email again")
 	}
 
@@ -103,7 +104,7 @@ func (r *RegisterReq) Register(ctx context.Context) (string, error) {
 		"purpose":  "register",
 	})
 	if err != nil {
-		logger.Error(fmt.Sprintf("Register: failed to generate token: %v", err))
+		logger.Error(fmt.Sprintf("Register: failed to generate token: %v", err), err)
 		return "", fmt.Errorf("something went wrong")
 	}
 

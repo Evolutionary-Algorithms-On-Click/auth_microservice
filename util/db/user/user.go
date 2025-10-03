@@ -16,11 +16,11 @@ func IsNewUser(ctx context.Context, email, userName string, db *pgxpool.Pool) bo
 }
 
 func UserById(ctx context.Context, id string, db *pgxpool.Pool) (map[string]string, error) {
-	var logger = util.NewLogger()
 
+	logger := util.SharedLogger
 	var role, email, userName, fullName string
 	if err := db.QueryRow(ctx, "SELECT role, email, userName, fullName FROM users WHERE id = $1", id).Scan(&role, &email, &userName, &fullName); err != nil {
-		logger.Error(fmt.Sprintf("Error getting user by id %v: %v", id, err))
+		logger.Error(fmt.Sprintf("Error getting user by id %v: %v", id, err), err)
 		return nil, fmt.Errorf("user not found")
 	}
 

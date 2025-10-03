@@ -8,8 +8,9 @@ import (
 )
 
 func Login(res http.ResponseWriter, req *http.Request) {
-	var logger = util.NewLogger()
-	logger.Info("Login API called.")
+
+	logger := util.SharedLogger
+	logger.InfoCtx(req, "Login API called.")
 
 	data, err := util.Body(req)
 	if err != nil {

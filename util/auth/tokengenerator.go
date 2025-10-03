@@ -10,11 +10,11 @@ import (
 )
 
 func Token(payload map[string]string) (string, error) {
-	var logger = util.NewLogger()
 
+	logger := util.SharedLogger
 	userJson, err := json.Marshal(payload)
 	if err != nil {
-		logger.Error("failed to marshal user payload")
+		logger.Error("failed to marshal user payload", err)
 		return "", err
 	}
 
