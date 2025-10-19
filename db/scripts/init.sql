@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS password_reset_otps;
 DROP TABLE IF EXISTS teamMembers;
 DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS access;
@@ -63,3 +64,16 @@ CREATE TABLE IF NOT EXISTS teamMembers (
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
+
+-- table to maintain password reset otps
+CREATE TABLE IF NOT EXISTS password_reset_otps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    otp_code STRING NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE
+);
+
+-- indexing for faster lookups
+CREATE INDEX IF NOT EXISTS idx_password_reset_user_id ON password_reset_otps(user_id);
