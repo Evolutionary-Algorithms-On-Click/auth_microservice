@@ -3,9 +3,6 @@ package resetpassword
 import (
     "context"
     "fmt"
-    
-    "golang.org/x/crypto/bcrypt"
-    
     "evolve/db/connection"
     "evolve/util/db/resetpassword"
     dbutil "evolve/util/db/user"
@@ -52,17 +49,8 @@ func VerifyAndResetPassword(ctx context.Context, email, otpCode, newPassword str
         return fmt.Errorf("invalid or expired OTP")
     }
     
-    // Hash new password (same as registration)
-    hashedPassword, err := bcrypt.GenerateFromPassword(
-        []byte(newPassword),
-        bcrypt.DefaultCost,
-    )
-    if err != nil {
-        return fmt.Errorf("failed to hash password: %w", err)
-    }
-    
     // Update password
-    err = dbutil.UpdatePassword(ctx, userID, string(hashedPassword), db)
+    err = dbutil.UpdatePassword(ctx, userID, newPassword, db)
     if err != nil {
         return fmt.Errorf("failed to update password: %w", err)
     }
