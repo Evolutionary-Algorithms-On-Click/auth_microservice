@@ -32,7 +32,7 @@ func serveHTTP(logger *util.LoggerService) {
 	http.HandleFunc(routes.LOGIN, controller.Login)
 	http.HandleFunc(routes.RESET_REQUEST, controller.ResetPasswordRequest)
 	http.HandleFunc(routes.RESET_VERIFY, controller.ResetPasswordVerify)
-	
+
 	logger.Info(fmt.Sprintf("Test http server on http://localhost%v/api/test", HTTP_PORT))
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("FRONTEND_URL")}, // Allowing frontend to access the server.
@@ -69,15 +69,13 @@ func main() {
 
 	HTTP_PORT = fmt.Sprintf(":%v", os.Getenv("HTTP_PORT"))
 	GRPC_PORT = fmt.Sprintf(":%v", os.Getenv("GRPC_PORT"))
-	
+
 	logger, err := util.InitLogger(os.Getenv("ENV")) // "DEVELOPMENT" or "PRODUCTION"
 	if err != nil {
 		fmt.Println("failed to init logger:", err)
 		return
 	}
 	util.Log = logger
-
-	
 
 	// Initialize db with schema.
 	if err := db.InitDb(context.Background()); err != nil {

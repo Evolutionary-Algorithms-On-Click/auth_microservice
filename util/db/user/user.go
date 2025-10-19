@@ -35,34 +35,34 @@ func UserById(ctx context.Context, id string, db *pgxpool.Pool) (map[string]stri
 
 // CheckEmail checks if an email exists in users table
 func CheckEmail(ctx context.Context, email string, db *pgxpool.Pool) (bool, error) {
-    query := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
-    
-    var exists bool
-    err := db.QueryRow(ctx, query, email).Scan(&exists)
-    if err != nil {
-        return false, err
-    }
-    
-    return exists, nil
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
+
+	var exists bool
+	err := db.QueryRow(ctx, query, email).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
 
 // GetUserIDByEmail returns user ID for given email
 func GetUserIDByEmail(ctx context.Context, email string, db *pgxpool.Pool) (string, error) {
-    query := `SELECT id FROM users WHERE email = $1`
-    
-    var userID string
-    err := db.QueryRow(ctx, query, email).Scan(&userID)
-    if err != nil {
-        return "", err
-    }
-    
-    return userID, nil
+	query := `SELECT id FROM users WHERE email = $1`
+
+	var userID string
+	err := db.QueryRow(ctx, query, email).Scan(&userID)
+	if err != nil {
+		return "", err
+	}
+
+	return userID, nil
 }
 
 // UpdatePassword updates user's password hash
 func UpdatePassword(ctx context.Context, userID string, hashedPassword string, db *pgxpool.Pool) error {
-    query := `UPDATE users SET password = $1, updatedAt = now() WHERE id = $2`
-    
-    _, err := db.Exec(ctx, query, hashedPassword, userID)
-    return err
+	query := `UPDATE users SET password = $1, updatedAt = now() WHERE id = $2`
+
+	_, err := db.Exec(ctx, query, hashedPassword, userID)
+	return err
 }
