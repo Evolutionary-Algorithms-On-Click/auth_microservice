@@ -20,7 +20,7 @@ func RequestPasswordReset(ctx context.Context, email string) error {
 	}
 
 	// Check if email exists
-	exists, err := dbutil.CheckEmail(ctx, email, db)
+	exists := !dbutil.IsNewUser(ctx, email, "", db)
 	if err != nil {
 		return fmt.Errorf("database error: %w", err)
 	}

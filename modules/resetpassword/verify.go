@@ -27,11 +27,7 @@ func VerifyAndResetPassword(ctx context.Context, email, otpCode, newPassword str
 	}
 
 	// Check if email exists
-	exists, err := dbutil.CheckEmail(ctx, email, db)
-	if err != nil {
-		return fmt.Errorf("database error: %w", err)
-	}
-	if !exists {
+	if dbutil.IsNewUser(ctx, email, "", db) {
 		return fmt.Errorf("invalid email or OTP")
 	}
 

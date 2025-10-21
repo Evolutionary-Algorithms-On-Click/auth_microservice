@@ -33,19 +33,6 @@ func UserById(ctx context.Context, id string, db *pgxpool.Pool) (map[string]stri
 	}, nil
 }
 
-// CheckEmail checks if an email exists in users table
-func CheckEmail(ctx context.Context, email string, db *pgxpool.Pool) (bool, error) {
-	query := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
-
-	var exists bool
-	err := db.QueryRow(ctx, query, email).Scan(&exists)
-	if err != nil {
-		return false, err
-	}
-
-	return exists, nil
-}
-
 // GetUserIDByEmail returns user ID for given email
 func GetUserIDByEmail(ctx context.Context, email string, db *pgxpool.Pool) (string, error) {
 	query := `SELECT id FROM users WHERE email = $1`
