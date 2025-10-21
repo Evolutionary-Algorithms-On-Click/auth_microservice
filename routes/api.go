@@ -11,6 +11,7 @@ const (
 	LOGIN    = BASE + "/login"
 
 	// Password Reset Routes
-	RESET_REQUEST = BASE + "/reset-password-request"
-	RESET_VERIFY  = BASE + "/reset-password-verify"
+	PASSWORD         = BASE + "/password"
+	PASSWORD_RESET   = PASSWORD + "/reset"
+	PASSWORD_VERIFY  = PASSWORD_RESET + "/verify"
 )
