@@ -31,7 +31,7 @@ func RequestPasswordReset(ctx context.Context, email string) error {
 	}
 
 	// Get user ID
-	userID, err := dbutil.GetUserIDByEmail(ctx, email, db)
+	userID, err := dbutil.UserIDFromEmail(ctx, email, db)
 	if err != nil {
 		return fmt.Errorf("failed to get user ID: %w", err)
 	}

@@ -33,8 +33,8 @@ func UserById(ctx context.Context, id string, db *pgxpool.Pool) (map[string]stri
 	}, nil
 }
 
-// GetUserIDByEmail returns user ID for given email
-func GetUserIDByEmail(ctx context.Context, email string, db *pgxpool.Pool) (string, error) {
+// UserIdFromEmail returns user ID for given email
+func UserIDFromEmail(ctx context.Context, email string, db *pgxpool.Pool) (string, error) {
 	query := `SELECT id FROM users WHERE email = $1`
 
 	var userID string
