@@ -3,6 +3,7 @@ package resetpassword
 import (
 	"context"
 	"evolve/db/connection"
+	"evolve/util/auth"
 	"evolve/util/db/resetpassword"
 	dbutil "evolve/util/db/user"
 	"fmt"
@@ -41,7 +42,8 @@ func VerifyAndResetPassword(ctx context.Context, email, otpCode, newPassword str
 	}
 
 	// Verify OTP
-	isValid, err := resetpassword.VerifyOTP(ctx, userID, otpCode, db)
+	hashedOTP := auth.HashOTP(otpCode)
+	isValid, err := resetpassword.VerifyOTP(ctx, userID, hashedOTP, db)
 	if err != nil {
 		return fmt.Errorf("failed to verify OTP: %w", err)
 	}

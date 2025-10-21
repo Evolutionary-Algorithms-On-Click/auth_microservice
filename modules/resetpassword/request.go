@@ -38,9 +38,10 @@ func RequestPasswordReset(ctx context.Context, email string) error {
 
 	// Generate OTP
 	otpCode := auth.GenerateOTP()
-
+	hashedOTP := auth.HashOTP(otpCode)
+	
 	// Save OTP to database
-	err = resetpassword.SaveOTP(ctx, userID, otpCode, db)
+	err = resetpassword.SaveOTP(ctx, userID, hashedOTP, db)
 	if err != nil {
 		return fmt.Errorf("failed to save OTP: %w", err)
 	}
