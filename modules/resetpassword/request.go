@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"evolve/db/connection"
+	"evolve/util"
 	"evolve/util/auth"
 	"evolve/util/db/resetpassword"
 	dbutil "evolve/util/db/user"
@@ -13,6 +14,8 @@ import (
 
 // RequestPasswordReset generates and sends OTP for password reset
 func RequestPasswordReset(ctx context.Context, email string) error {
+	logger := util.SharedLogger
+
 	// Get database connection
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
@@ -26,6 +29,7 @@ func RequestPasswordReset(ctx context.Context, email string) error {
 		// OTP page should show a message that OTP would've come to your email
 		// "if you are a registered user. If OTP did not come,
 		// check the email you entered again".
+		logger.Debug(fmt.Sprintf("email %s not found", email))
 		return nil
 	}
 
