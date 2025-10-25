@@ -1,9 +1,10 @@
+-- Drop tables in reverse dependency order
 DROP TABLE IF EXISTS password_reset_otps;
 DROP TABLE IF EXISTS teamMembers;
-DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS access;
 DROP TABLE IF EXISTS run;
 DROP TABLE IF EXISTS registerOtp;
+DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS users;
  
 CREATE TABLE IF NOT EXISTS users (

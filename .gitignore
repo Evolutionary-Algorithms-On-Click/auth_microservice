@@ -27,3 +27,5 @@ go.work.sum
 # log files
 *.log
 cockroach-data/
+
+.DS_Store

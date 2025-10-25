@@ -1,7 +1,6 @@
 package main
 
 import (
-	"aidanwoods.dev/go-paseto"
 	"context"
 	"evolve/config"
 	"evolve/controller"
@@ -11,12 +10,14 @@ import (
 	"evolve/routes"
 	"evolve/util"
 	"fmt"
-	"github.com/rs/cors"
-	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os"
 	"runtime"
+
+	"aidanwoods.dev/go-paseto"
+	"github.com/rs/cors"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -24,7 +25,8 @@ var (
 	GRPC_PORT string
 )
 
-func serveHTTP(logger *util.LoggerService) {
+func serveHTTP() {
+	logger := util.SharedLogger
 	// Register routes.
 	http.HandleFunc(routes.TEST, controller.Test)
 	http.HandleFunc(routes.REGISTER, controller.Register)
@@ -41,7 +43,7 @@ func serveHTTP(logger *util.LoggerService) {
 		AllowCredentials: true,
 	}).Handler(http.DefaultServeMux)
 
-	handler := util.Log.LogMiddleware(corsHandler)
+	handler := util.SharedLogger.LogMiddleware(corsHandler)
 
 	if err := http.ListenAndServe(HTTP_PORT, handler); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err), err)
@@ -49,7 +51,8 @@ func serveHTTP(logger *util.LoggerService) {
 	}
 }
 
-func serveGRPC(logger *util.LoggerService) {
+func serveGRPC() {
+	logger := util.SharedLogger
 	lis, err := net.Listen("tcp", GRPC_PORT)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to listen TCP in GRPC PORT%v : %v", GRPC_PORT, err), err)
@@ -70,17 +73,16 @@ func main() {
 	HTTP_PORT = fmt.Sprintf(":%v", os.Getenv("HTTP_PORT"))
 	GRPC_PORT = fmt.Sprintf(":%v", os.Getenv("GRPC_PORT"))
 
-	logger, err := util.InitLogger(os.Getenv("ENV")) // "DEVELOPMENT" or "PRODUCTION"
+	logger, err := util.InitLogger(os.Getenv("ENV"))
 	if err != nil {
 		fmt.Println("failed to init logger:", err)
 		return
 	}
-	util.Log = logger
+	util.SharedLogger = logger
 
 	// Initialize db with schema.
 	if err := db.InitDb(context.Background()); err != nil {
 		logger.Error("failed to init db", err)
-		logger.Error(err.Error(), err)
 		return
 	}
 
@@ -88,8 +90,8 @@ func main() {
 	key := paseto.NewV4AsymmetricSecretKey()
 	config.PrivateKey, config.PublicKey = key, key.Public()
 
-	go serveHTTP(util.Log)
-	go serveGRPC(util.Log)
+	go serveHTTP()
+	go serveGRPC()
 
 	runtime.Goexit()
 }

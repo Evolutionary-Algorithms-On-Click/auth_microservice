@@ -19,14 +19,13 @@ func RequestPasswordReset(ctx context.Context, email string) error {
 		return fmt.Errorf("database connection error: %w", err)
 	}
 
-	// Check if email exists
-	exists := !dbutil.IsNewUser(ctx, email, "", db)
-	if err != nil {
-		return fmt.Errorf("database error: %w", err)
-	}
-
-	// not revealing if email exists or not for security reasons
-	if !exists {
+	// Check if email exists.
+	if isNewUser := dbutil.IsNewUser(ctx, email, "", db); isNewUser {
+		// not revealing if email exists or not for security reasons.
+		// instead will be redirected to OTP page.
+		// OTP page should show a message that OTP would've come to your email
+		// "if you are a registered user. If OTP did not come,
+		// check the email you entered again".
 		return nil
 	}
 
@@ -39,7 +38,7 @@ func RequestPasswordReset(ctx context.Context, email string) error {
 	// Generate OTP
 	otpCode := auth.GenerateOTP()
 	hashedOTP := auth.HashOTP(otpCode)
-	
+
 	// Save OTP to database
 	err = resetpassword.SaveOTP(ctx, userID, hashedOTP, db)
 	if err != nil {
