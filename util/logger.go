@@ -1,9 +1,7 @@
 package util
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"os"
@@ -13,7 +11,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var Log *LoggerService
+var SharedLogger *LoggerService
 
 type LoggerService struct {
 	Logger zerolog.Logger
@@ -54,86 +52,18 @@ type ILoggerService interface {
 }
 
 func InitLogger(env string) (*LoggerService, error) {
-	var output io.Writer
-
-	switch env {
-	case EnvDevelopment:
-		file, err := os.OpenFile("dev.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-		if err != nil {
-			return nil, err
-		}
-		consoleWriter := zerolog.ConsoleWriter{
-			Out:        os.Stderr,
-			TimeFormat: time.RFC3339,
-		}
-		fileWriter := zerolog.ConsoleWriter{
-			Out:        file,
-			TimeFormat: "",
-			FormatFieldName: func(i any) string {
-				return fmt.Sprintf("%s=", i)
-			},
-			FormatFieldValue: func(i any) string {
-				s := fmt.Sprintf("%v", i)
-				if strings.ContainsAny(s, "") {
-					return fmt.Sprintf("%q", s)
-				}
-				return s
-			},
-			FormatTimestamp: func(i any) string {
-				t, err := time.Parse(time.RFC3339, i.(string))
-				if err != nil {
-					return fmt.Sprintf("time=%q", i) // Fallback if parsing fails
-				}
-				return fmt.Sprintf("time=%d", t.UnixMilli())
-			},
-			FormatLevel: func(i any) string {
-				return fmt.Sprintf("level=%q", i)
-			},
-			FormatMessage: func(i any) string {
-				return fmt.Sprintf("msg=%q", i) // Quoting the message automatically
-			},
-			NoColor: true,
-		}
-		output = zerolog.MultiLevelWriter(consoleWriter, fileWriter)
-	case EnvProduction:
-		file, err := os.OpenFile("prod.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-		if err != nil {
-			return nil, err
-		}
-		output = zerolog.ConsoleWriter{
-			Out:        file,
-			TimeFormat: "",
-			FormatFieldName: func(i any) string {
-				return fmt.Sprintf("%s=", i)
-			},
-			FormatFieldValue: func(i any) string {
-				s := fmt.Sprintf("%v", i)
-				if strings.ContainsAny(s, "") {
-					return fmt.Sprintf("%q", s)
-				}
-				return s
-			},
-			FormatTimestamp: func(i any) string {
-				t, err := time.Parse(time.RFC3339, i.(string))
-				if err != nil {
-					return fmt.Sprintf("time=%q", i) // Fallback if parsing fails
-				}
-				return fmt.Sprintf("time=%d", t.UnixMilli())
-			},
-			FormatLevel: func(i interface{}) string {
-				return fmt.Sprintf("level=%s", i)
-			},
-			FormatMessage: func(i interface{}) string {
-				return fmt.Sprintf("msg=%q", i) // Quoting the message automatically
-			},
-			NoColor: true,
-		}
-	default:
-		return nil, errors.New("invalid environment for logger setup")
+	if env == "" {
+		env = EnvDevelopment
+	}
+	if env != EnvDevelopment && env != EnvProduction {
+		return nil, fmt.Errorf("invalid environment for logger setup: %s", env)
 	}
 
-	logger := zerolog.New(output).With().Timestamp().Logger()
-	zerolog.TimeFieldFormat = time.RFC3339Nano
+	config := zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339,
+	}
+	logger := zerolog.New(config).With().Timestamp().Logger()
 	return &LoggerService{
 		Logger: logger,
 		Env:    env,
@@ -279,4 +209,4 @@ func (l *LoggerService) LogMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-var SharedLogger, err = InitLogger(os.Getenv("ENV"))
+// Removed global SharedLogger to prevent duplicate logging

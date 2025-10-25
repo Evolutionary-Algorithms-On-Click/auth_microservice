@@ -1,5 +1,5 @@
-# golang 1.23
-FROM golang:1.23
+# golang 1.24
+FROM golang:1.24
 
 # Set the Current Working Directory inside the container
 WORKDIR /auth_microservice

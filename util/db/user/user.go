@@ -32,3 +32,24 @@ func UserById(ctx context.Context, id string, db *pgxpool.Pool) (map[string]stri
 		"fullName": fullName,
 	}, nil
 }
+
+// UserIdFromEmail returns user ID for given email
+func UserIDFromEmail(ctx context.Context, email string, db *pgxpool.Pool) (string, error) {
+	query := `SELECT id FROM users WHERE email = $1`
+
+	var userID string
+	err := db.QueryRow(ctx, query, email).Scan(&userID)
+	if err != nil {
+		return "", err
+	}
+
+	return userID, nil
+}
+
+// UpdatePassword updates user's password hash
+func UpdatePassword(ctx context.Context, userID string, hashedPassword string, db *pgxpool.Pool) error {
+	query := `UPDATE users SET password = $1, updatedAt = now() WHERE id = $2`
+
+	_, err := db.Exec(ctx, query, hashedPassword, userID)
+	return err
+}
