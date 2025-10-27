@@ -81,49 +81,5 @@ CREATE TABLE IF NOT EXISTS password_reset_otps (
 -- indexing for faster lookups
 CREATE INDEX IF NOT EXISTS idx_password_reset_user_id ON password_reset_otps(user_id);
 
-INSERT INTO USERS 
-(
-    userName,
-    fullName,
-    email,
-    password
-)
-VALUES
-(
-    'sharath',
-    'sharath',
-    'abc@gmail.com',
-    'password123'
-);
-
-INSERT INTO USERS 
-(
-    userName,
-    fullName,
-    email,
-    password
-)
-VALUES
-(
-    'saran',
-    'saran',
-    'abc1@gmail.com',
-    'password123'
-);
-
-INSERT INTO USERS 
-(
-    userName,
-    fullName,
-    email,
-    password
-)
-VALUES
-(
-    'user1',
-    'user1',
-    'user1@gmail.com',
-    'password123'
-);
 
 

@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"evolve/modules/team"
 	"evolve/util"
 	"evolve/util/auth"
-	"net/http" 
-	"evolve/modules/team"
+	"net/http"
 )
 
-//to create a new team
+// to create a new team
 func CreateTeam(res http.ResponseWriter, req *http.Request) {
 
 	logger := util.SharedLogger
@@ -26,7 +26,7 @@ func CreateTeam(res http.ResponseWriter, req *http.Request) {
 		util.JSONResponse(res, http.StatusUnauthorized, "Session Expired.", nil)
 		return
 	}
-	
+
 	if payLoad["purpose"] != "login" {
 		util.JSONResponse(res, http.StatusUnauthorized, "Good try.", nil)
 		return
@@ -38,7 +38,7 @@ func CreateTeam(res http.ResponseWriter, req *http.Request) {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
-	
+
 	createTeamReq, err := util.FromJson[team.CreateTeamReq](data)
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
@@ -54,10 +54,9 @@ func CreateTeam(res http.ResponseWriter, req *http.Request) {
 
 	util.JSONResponse(res, http.StatusOK, "Team Creation Successful.", nil)
 
-
 }
 
-//to get the list of teams created by a user
+// to get the list of teams created by a user
 func GetTeams(res http.ResponseWriter, req *http.Request) {
 	logger := util.SharedLogger
 	logger.InfoCtx(req, "GetTeams API called.")
@@ -81,13 +80,13 @@ func GetTeams(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	teamsInfo,err := team.GetTeams(req.Context(), payLoad)
+	teamsInfo, err := team.GetTeams(req.Context(), payLoad)
 
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
-	
+
 	util.JSONResponse(res, http.StatusOK, "Success", teamsInfo)
 
 }
@@ -130,13 +129,13 @@ func GetTeamMembers(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	teamMetadata,err := getTeamMembersObj.GetTeamMembers(req.Context(), payLoad)
+	teamMetadata, err := getTeamMembersObj.GetTeamMembers(req.Context(), payLoad)
 
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
-	
+
 	util.JSONResponse(res, http.StatusOK, "Success", teamMetadata)
 }
 
@@ -170,7 +169,7 @@ func AddTeamMembers(res http.ResponseWriter, req *http.Request) {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
-	
+
 	addTeamMembersReq, err := util.FromJson[team.AddMembersReq](data)
 
 	if err != nil {
@@ -186,8 +185,6 @@ func AddTeamMembers(res http.ResponseWriter, req *http.Request) {
 	}
 
 	util.JSONResponse(res, http.StatusOK, result, nil)
-
-
 
 }
 

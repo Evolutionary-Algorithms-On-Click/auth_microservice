@@ -22,7 +22,6 @@ func Body(req *http.Request) (map[string]any, error) {
 	return data, nil
 }
 
-
 func FromJson[T any](data map[string]any) (*T, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
