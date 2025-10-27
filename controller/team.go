@@ -39,7 +39,7 @@ func CreateTeam(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
-	createTeamReq, err := team.CreateTeamReqFromJson(data)
+	createTeamReq, err := util.FromJson[team.CreateTeamReq](data)
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
 		return
@@ -118,7 +118,18 @@ func GetTeamMembers(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var getTeamMembersObj team.GetTeamMembersReq
+	data, err := util.Body(req)
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	getTeamMembersObj, err := util.FromJson[team.GetTeamMembersReq](data)
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
 	teamMetadata,err := getTeamMembersObj.GetTeamMembers(req.Context(), payLoad)
 
 	if err != nil {
@@ -127,4 +138,100 @@ func GetTeamMembers(res http.ResponseWriter, req *http.Request) {
 	}
 	
 	util.JSONResponse(res, http.StatusOK, "Success", teamMetadata)
+}
+
+func AddTeamMembers(res http.ResponseWriter, req *http.Request) {
+
+	logger := util.SharedLogger
+	logger.InfoCtx(req, "AddTeamMembers API called.")
+
+	token, err := req.Cookie("t")
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusUnauthorized, "You got to try way better than that.", nil)
+		return
+	}
+
+	payLoad, err := auth.ValidateToken(token.Value)
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusUnauthorized, "Session Expired.", nil)
+		return
+	}
+
+	if payLoad["purpose"] != "login" {
+		util.JSONResponse(res, http.StatusUnauthorized, "Good try.", nil)
+		return
+	}
+
+	data, err := util.Body(req)
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+	
+	addTeamMembersReq, err := util.FromJson[team.AddMembersReq](data)
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	result, err := addTeamMembersReq.AddTeamMembers(req.Context(), payLoad)
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	util.JSONResponse(res, http.StatusOK, result, nil)
+
+
+
+}
+
+func DeleteTeamMembers(res http.ResponseWriter, req *http.Request) {
+
+	logger := util.SharedLogger
+	logger.InfoCtx(req, "DeleteTeamMembers API called.")
+
+	token, err := req.Cookie("t")
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusUnauthorized, "You got to try way better than that.", nil)
+		return
+	}
+
+	payLoad, err := auth.ValidateToken(token.Value)
+
+	if err != nil {
+		util.JSONResponse(res, http.StatusUnauthorized, "Session Expired.", nil)
+		return
+	}
+
+	if payLoad["purpose"] != "login" {
+		util.JSONResponse(res, http.StatusUnauthorized, "Good try.", nil)
+		return
+	}
+
+	data, err := util.Body(req)
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	deleteTeamMembersReq, err := util.FromJson[team.DeleteTeamMembersReq](data)
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	result, err := deleteTeamMembersReq.DeleteTeamMembers(req.Context(), payLoad)
+	if err != nil {
+		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	util.JSONResponse(res, http.StatusOK, result, nil)
 }
