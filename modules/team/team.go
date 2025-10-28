@@ -82,7 +82,7 @@ func GetTeams(ctx context.Context, user map[string]string) ([]map[string]any, er
 		return nil, fmt.Errorf("something went wrong")
 	}
 
-	rows, err := db.Query(ctx, "SELECT T.TEAMID, T.TEAMDESC, COUNT(*) OVER (PARTITION BY M.TEAMID) FROM TEAM T JOIN TEAMMEMBERS M ON T.TEAMID = M.TEAMID AND T.CREATEDBY = $1", user["id"])
+	rows, err := db.Query(ctx, "SELECT T.TEAMID, T.TEAMDESC, COUNT(*) OVER (PARTITION BY M.TEAMID) FROM TEAM T JOIN TEAMMEMBERS M ON T.TEAMID = M.TEAMID WHERE T.TEAMID IN (SELECT TEAMID FROM TEAMMEMBERS WHERE M.MEMBERID = $1)", user["id"])
 
 	if err != nil {
 		logger.Error(fmt.Sprintf("GetTeams: failed to get teams: %v", err), err)

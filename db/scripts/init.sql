@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS team (
 CREATE TABLE IF NOT EXISTS teamMembers (
     memberId UUID REFERENCES users(id),
     teamID UUID REFERENCES team(teamID),
-     role STRING,
+    role STRING,
     PRIMARY KEY (memberId, teamID),
     createdAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
@@ -80,6 +80,5 @@ CREATE TABLE IF NOT EXISTS password_reset_otps (
 
 -- indexing for faster lookups
 CREATE INDEX IF NOT EXISTS idx_password_reset_user_id ON password_reset_otps(user_id);
-
 
 
