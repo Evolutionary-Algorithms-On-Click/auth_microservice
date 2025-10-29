@@ -22,6 +22,8 @@ export MAILER_PASSWORD=<mailer_password>
 export FRONTEND_URL=<frontend_url>
 export HTTP_PORT=5000
 export GRPC_PORT=5001
+export INIT_DB=true
+export ENV=DEVELOPMENT
 ```
 3. Install the protobuf-grpc compiler.
 ```sh

@@ -17,3 +17,4 @@ services:
       HTTP_PORT: 5000
       GRPC_PORT: 5001
       ENV: DEVELOPMENT
+      INIT_DB: true
