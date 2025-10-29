@@ -46,11 +46,14 @@ func serveHTTP() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
+		ExposedHeaders:   []string{"X-CSRF-Token"},
 	}).Handler(http.DefaultServeMux)
 
 	handler := util.SharedLogger.LogMiddleware(corsHandler)
 
-	if err := http.ListenAndServe(HTTP_PORT, handler); err != nil {
+	finalHandler := util.CSRFMiddleware(handler)
+
+	if err := http.ListenAndServe(HTTP_PORT, finalHandler); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err), err)
 		return
 	}
