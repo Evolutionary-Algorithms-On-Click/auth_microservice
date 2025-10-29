@@ -50,8 +50,12 @@ func serveHTTP() {
 	}).Handler(http.DefaultServeMux)
 
 	handler := util.SharedLogger.LogMiddleware(corsHandler)
-
-	finalHandler := util.CSRFMiddleware(handler)
+	var finalHandler http.Handler
+	if os.Getenv("CSRF_PROTECTION") == "true" {
+		finalHandler = util.CSRFMiddleware(handler)
+	} else {
+		finalHandler = handler
+	}
 
 	if err := http.ListenAndServe(HTTP_PORT, finalHandler); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err), err)

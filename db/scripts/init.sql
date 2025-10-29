@@ -81,4 +81,4 @@ CREATE TABLE IF NOT EXISTS password_reset_otps (
 -- indexing for faster lookups
 CREATE INDEX IF NOT EXISTS idx_password_reset_user_id ON password_reset_otps(user_id);
 
-
+INSERT INTO users (userName, fullName, email, password, role) VALUES ('admin', 'Admin', 'admin@evolve.com', 'admin', 'admin');
