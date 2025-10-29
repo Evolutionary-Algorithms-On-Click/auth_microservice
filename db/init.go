@@ -10,6 +10,12 @@ import (
 func InitDb(ctx context.Context) error {
 
 	logger := util.SharedLogger
+
+	if os.Getenv("INIT_DB") != "true" {
+		logger.Info("initDb: skipping database initialization")
+		return nil
+	}
+
 	conn, err := connection.PoolConn(ctx)
 	if err != nil {
 		logger.Error("initDb: failed to get pool connection", err)
