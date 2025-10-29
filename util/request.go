@@ -21,3 +21,17 @@ func Body(req *http.Request) (map[string]any, error) {
 
 	return data, nil
 }
+
+func FromJson[T any](data map[string]any) (*T, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var result *T
+	if err := json.Unmarshal(jsonData, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
