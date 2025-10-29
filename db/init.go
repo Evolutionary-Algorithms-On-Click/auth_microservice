@@ -16,6 +16,11 @@ func InitDb(ctx context.Context) error {
 		return err
 	}
 
+	if(os.Getenv("INIT_DB") != "true"){
+		logger.Info("initDb: skipping database initialization, only creating pool connection")
+		return nil
+	}
+
 	sql, err := os.ReadFile("db/scripts/init.sql")
 	if err != nil {
 		logger.Error("initDb: failed to read init.sql", err)
