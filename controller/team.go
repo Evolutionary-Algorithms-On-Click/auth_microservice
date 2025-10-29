@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// to create a new team
+// CreateTeam creates a new team.
 func CreateTeam(res http.ResponseWriter, req *http.Request) {
 
 	logger := util.SharedLogger
@@ -32,7 +32,6 @@ func CreateTeam(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//should change it to data
 	data, err := util.Body(req)
 	if err != nil {
 		util.JSONResponse(res, http.StatusBadRequest, err.Error(), nil)
@@ -56,7 +55,7 @@ func CreateTeam(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// to get the list of teams created by a user
+// GetTeams gets the list of teams created by a user and those they are a member of.
 func GetTeams(res http.ResponseWriter, req *http.Request) {
 	logger := util.SharedLogger
 	logger.InfoCtx(req, "GetTeams API called.")
@@ -91,8 +90,7 @@ func GetTeams(res http.ResponseWriter, req *http.Request) {
 
 }
 
-//to get the members and team metadata
-
+// GetTeamMembers gets the members and team metadata.
 func GetTeamMembers(res http.ResponseWriter, req *http.Request) {
 
 	logger := util.SharedLogger
@@ -139,6 +137,7 @@ func GetTeamMembers(res http.ResponseWriter, req *http.Request) {
 	util.JSONResponse(res, http.StatusOK, "Success", teamMetadata)
 }
 
+// AddTeamMembers adds members to a team.
 func AddTeamMembers(res http.ResponseWriter, req *http.Request) {
 
 	logger := util.SharedLogger
@@ -188,6 +187,7 @@ func AddTeamMembers(res http.ResponseWriter, req *http.Request) {
 
 }
 
+// DeleteTeamMembers deletes members from a team.
 func DeleteTeamMembers(res http.ResponseWriter, req *http.Request) {
 
 	logger := util.SharedLogger

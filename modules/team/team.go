@@ -5,7 +5,14 @@ import (
 	"encoding/json"
 	"evolve/db/connection"
 	"evolve/util"
+	teamdb "evolve/util/db/team"
 	"fmt"
+	"strings"
+)
+
+const (
+	RoleAdmin  = "Admin"
+	RoleMember = "Member"
 )
 
 type CreateTeamReq struct {
@@ -14,6 +21,7 @@ type CreateTeamReq struct {
 }
 
 type TeamInfo struct {
+	TeamName    string `json:"teamName"`
 	TeamID      string `json:"teamId"`
 	TeamDesc    string `json:"teamDesc"`
 	MemberCount int    `json:"memberCount"`
@@ -26,6 +34,7 @@ type GetTeamMembersReq struct {
 type TeamMembers struct {
 	UserName string `json:"userName"`
 	Email    string `json:"email"`
+	Role     string `json:"role"`
 }
 
 type TeamData struct {
@@ -41,17 +50,32 @@ type DeleteTeamMembersReq struct {
 
 type AddMembersReq struct {
 	TeamName    string   `json:"teamName"`
-	TeamMembers []string `json:"teamMembers"`
+	TeamMembers []string `json:"teamMembers"` // a list of usernames
 }
 
 func (c *CreateTeamReq) CreateTeam(ctx context.Context, user map[string]string) error {
 
 	logger := util.SharedLogger
 
+	// Validate inputs to prevent creating empty teams
+	if strings.TrimSpace(c.TeamName) == "" || strings.TrimSpace(c.TeamDesc) == "" {
+		return fmt.Errorf("teamName and teamDesc are required")
+	}
+
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
 		logger.Error(fmt.Sprintf("CreateTeam: failed to get pool connection: %v", err), err)
 		return fmt.Errorf("something went wrong")
+	}
+
+	// Check if team with same name already exists for this user
+	exists, err := teamdb.TeamExistsByNameForUser(ctx, c.TeamName, user["id"], db)
+	if err != nil {
+		logger.Error(fmt.Sprintf("CreateTeam: failed to check team existence: %v", err), err)
+		return fmt.Errorf("something went wrong")
+	}
+	if exists {
+		return fmt.Errorf("team with this name already exists")
 	}
 
 	var teamID string
@@ -63,7 +87,7 @@ func (c *CreateTeamReq) CreateTeam(ctx context.Context, user map[string]string) 
 	}
 
 	//inserting the admin into teamMembers table
-	_, err = db.Exec(ctx, "INSERT INTO teamMembers (memberId, teamID, role) VALUES ($1, $2, $3)", user["id"], teamID, "Admin")
+	_, err = db.Exec(ctx, "INSERT INTO teamMembers (memberId, teamID, role) VALUES ($1, $2, $3)", user["id"], teamID, RoleAdmin)
 
 	if err != nil {
 		logger.Error(fmt.Sprintf("Createteam: failed to Insert into teamMembers Table: %v", err), err)
@@ -82,7 +106,7 @@ func GetTeams(ctx context.Context, user map[string]string) ([]map[string]any, er
 		return nil, fmt.Errorf("something went wrong")
 	}
 
-	rows, err := db.Query(ctx, "SELECT T.TEAMID, T.TEAMDESC, COUNT(*) OVER (PARTITION BY M.TEAMID) FROM TEAM T JOIN TEAMMEMBERS M ON T.TEAMID = M.TEAMID WHERE T.TEAMID IN (SELECT TEAMID FROM TEAMMEMBERS WHERE M.MEMBERID = $1)", user["id"])
+	rows, err := db.Query(ctx, "SELECT T.TEAMNAME, T.TEAMID, T.TEAMDESC, COUNT(*) OVER (PARTITION BY M.TEAMID) FROM TEAM T JOIN TEAMMEMBERS M ON T.TEAMID = M.TEAMID WHERE T.TEAMID IN (SELECT TEAMID FROM TEAMMEMBERS WHERE M.MEMBERID = $1)", user["id"])
 
 	if err != nil {
 		logger.Error(fmt.Sprintf("GetTeams: failed to get teams: %v", err), err)
@@ -93,7 +117,7 @@ func GetTeams(ctx context.Context, user map[string]string) ([]map[string]any, er
 
 	for rows.Next() {
 		var team TeamInfo
-		err := rows.Scan(&team.TeamID, &team.TeamDesc, &team.MemberCount)
+		err := rows.Scan(&team.TeamName, &team.TeamID, &team.TeamDesc, &team.MemberCount)
 		if err != nil {
 			logger.Error(fmt.Sprintf("GetTeams: failed to get teams: %v", err), err)
 			return nil, fmt.Errorf("something went wrong")
@@ -111,6 +135,10 @@ func GetTeams(ctx context.Context, user map[string]string) ([]map[string]any, er
 	var teamMap []map[string]any
 
 	err = json.Unmarshal(result, &teamMap)
+	if err != nil {
+		logger.Error(fmt.Sprintf("GetTeams: failed to unmarshal TeamInfo to json: %v", err), err)
+		return nil, fmt.Errorf("something went wrong")
+	}
 
 	return teamMap, nil
 }
@@ -119,13 +147,28 @@ func (g *GetTeamMembersReq) GetTeamMembers(ctx context.Context, payLoad map[stri
 
 	logger := util.SharedLogger
 
+	// Validate teamName - return error if empty
+	if strings.TrimSpace(g.TeamName) == "" {
+		return nil, fmt.Errorf("teamName is required")
+	}
+
 	db, err := connection.PoolConn(ctx)
 	if err != nil {
 		logger.Error(fmt.Sprintf("GetTeamMembers: failed to get pool connection: %v", err), err)
 		return nil, fmt.Errorf("something went wrong")
 	}
 
-	rows, err := db.Query(ctx, "SELECT T.TEAMID, T.TEAMNAME, T.TEAMDESC, M.MEMBERID, U.USERNAME, U.EMAIL FROM TEAM T JOIN TEAMMEMBERS M ON T.TEAMID = M.TEAMID JOIN USERS U ON M.MEMBERID = U.ID WHERE T.CREATEDBY = $1 AND T.TEAMNAME = $2", payLoad["id"], g.TeamName)
+	// Check if user is a member of the team (creator or member)
+	isMember, err := teamdb.IsUserTeamMember(ctx, g.TeamName, payLoad["id"], db)
+	if err != nil {
+		logger.Error(fmt.Sprintf("GetTeamMembers: failed to check team membership: %v", err), err)
+		return nil, fmt.Errorf("something went wrong")
+	}
+	if !isMember {
+		return nil, fmt.Errorf("team not found or you are not a member of this team")
+	}
+
+	rows, err := db.Query(ctx, "SELECT T.TEAMID, T.TEAMNAME, T.TEAMDESC, M.MEMBERID, U.USERNAME, U.EMAIL, M.ROLE FROM TEAM T JOIN TEAMMEMBERS M ON T.TEAMID = M.TEAMID JOIN USERS U ON M.MEMBERID = U.ID WHERE T.TEAMNAME = $1", g.TeamName)
 
 	if err != nil {
 		logger.Error(fmt.Sprintf("GetTeamMembers: failed to get teams: %v", err), err)
@@ -143,7 +186,7 @@ func (g *GetTeamMembersReq) GetTeamMembers(ctx context.Context, payLoad map[stri
 		var teamID, memberID string
 
 		//getting team members list
-		err := rows.Scan(&teamID, &teamMetadata.TeamName, &teamMetadata.TeamDesc, &memberID, &teamData.UserName, &teamData.Email)
+		err := rows.Scan(&teamID, &teamMetadata.TeamName, &teamMetadata.TeamDesc, &memberID, &teamData.UserName, &teamData.Email, &teamData.Role)
 		if err != nil {
 			logger.Error(fmt.Sprintf("GetTeamMembersReq: failed to get team data: %v", err), err)
 			return nil, fmt.Errorf("something went wrong")
@@ -173,11 +216,15 @@ func (a *AddMembersReq) AddTeamMembers(ctx context.Context, payLoad map[string]s
 		return "", fmt.Errorf("something went wrong")
 	}
 
+	// Ensure requester is an Admin of the team
 	var teamID string
-	err = db.QueryRow(ctx, "SELECT teamID FROM team WHERE teamName = $1 AND createdBy = $2", a.TeamName, payLoad["id"]).Scan(&teamID)
+	err = db.QueryRow(ctx,
+		"SELECT T.teamID FROM team T JOIN teamMembers TM ON TM.teamID = T.teamID WHERE T.teamName = $1 AND TM.memberId = $2 AND TM.role = $3",
+		a.TeamName, payLoad["id"], RoleAdmin,
+	).Scan(&teamID)
 	if err != nil {
-		logger.Error(fmt.Sprintf("AddTeamMembers: Invalid Team ID: %v", err), err)
-		return "", fmt.Errorf("Team Not Found")
+		logger.Error(fmt.Sprintf("AddTeamMembers: permission denied or team not found: %v", err), err)
+		return "", fmt.Errorf("only admins can add team members")
 	}
 
 	// Add each member to the team
@@ -191,7 +238,7 @@ func (a *AddMembersReq) AddTeamMembers(ctx context.Context, payLoad map[string]s
 			continue
 		}
 
-		_, err = db.Exec(ctx, "INSERT INTO teamMembers (memberId, teamID, role) VALUES ($1, $2, $3)", userID, teamID, "Member")
+		_, err = db.Exec(ctx, "INSERT INTO teamMembers (memberId, teamID, role) VALUES ($1, $2, $3)", userID, teamID, RoleMember)
 		if err != nil {
 			logger.Error(fmt.Sprintf("AddTeamMembers: failed to add member %v: %v", member, err), err)
 			continue
@@ -212,14 +259,19 @@ func (d *DeleteTeamMembersReq) DeleteTeamMembers(ctx context.Context, payLoad ma
 		return "", fmt.Errorf("something went wrong")
 	}
 
+	// Ensure requester is an Admin of the team
 	var teamID string
-	err = db.QueryRow(ctx, "SELECT teamID FROM team WHERE teamName = $1 AND createdBy = $2", d.TeamName, payLoad["id"]).Scan(&teamID)
+	err = db.QueryRow(ctx,
+		"SELECT T.teamID FROM team T JOIN teamMembers TM ON TM.teamID = T.teamID WHERE T.teamName = $1 AND TM.memberId = $2 AND TM.role = $3",
+		d.TeamName, payLoad["id"], RoleAdmin,
+	).Scan(&teamID)
 	if err != nil {
-		logger.Error(fmt.Sprintf("DeleteTeamMembers: Invalid Team ID: %v", err), err)
-		return "", fmt.Errorf("Team Not Found")
+		logger.Error(fmt.Sprintf("DeleteTeamMembers: permission denied or team not found: %v", err), err)
+		return "", fmt.Errorf("only admins can remove team members")
 	}
 
-	result, err := db.Exec(ctx, "DELETE FROM teamMembers WHERE teamID = $1 AND memberId IN (SELECT id FROM users WHERE userName = ANY($2))", teamID, d.TeamMembers)
+	// Prevent deletion of Admin(s)
+	result, err := db.Exec(ctx, "DELETE FROM teamMembers WHERE teamID = $1 AND role <> $3 AND memberId IN (SELECT id FROM users WHERE userName = ANY($2))", teamID, d.TeamMembers, RoleAdmin)
 	if err != nil {
 		logger.Error(fmt.Sprintf("DeleteTeamMembers: failed to delete members: %v", err), err)
 		return "", fmt.Errorf("something went wrong")
