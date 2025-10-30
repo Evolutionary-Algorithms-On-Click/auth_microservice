@@ -8,6 +8,7 @@ import (
 	"evolve/util/auth"
 	dbutil "evolve/util/db/user"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -46,6 +47,12 @@ func (l *LoginReq) validate() error {
 	return nil
 }
 
+func isBcryptHash(s string) bool {
+	return strings.HasPrefix(s, "$2a$") ||
+		strings.HasPrefix(s, "$2b$") ||
+		strings.HasPrefix(s, "$2y$")
+}
+
 func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 
 	logger := util.SharedLogger
@@ -71,12 +78,25 @@ func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 		return nil, fmt.Errorf("invalid username/email or password")
 	}
 
-	// Verify password using bcrypt
-	err = bcrypt.CompareHashAndPassword([]byte(storedPasswordHash), []byte(l.Password))
-	if err != nil {
-		// Password doesn't match
-		logger.Info("Login: invalid password attempt")
-		return nil, fmt.Errorf("invalid username/email or password")
+	if isBcryptHash(storedPasswordHash) {
+		err = bcrypt.CompareHashAndPassword([]byte(storedPasswordHash), []byte(l.Password))
+		if err != nil {
+			logger.Info("Login: invalid password attempt")
+			return nil, fmt.Errorf("invalid username/email or password")
+		}
+	} else {
+		// Compare plain text for legacy users
+		if storedPasswordHash != l.Password {
+			logger.Info("Login: invalid password attempt (legacy)")
+			return nil, fmt.Errorf("invalid username/email or password")
+		}
+
+		// Rehash and update DB for this user
+		newHash, err := bcrypt.GenerateFromPassword([]byte(l.Password), bcrypt.DefaultCost)
+		if err == nil {
+			_, _ = db.Exec(ctx, "UPDATE users SET password = $1 WHERE id = $2", string(newHash), id)
+			logger.Info(fmt.Sprintf("Upgraded password hash for user %v", id))
+		}
 	}
 
 	// Password verified, get user details
