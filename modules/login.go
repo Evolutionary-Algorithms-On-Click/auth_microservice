@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginReq struct {
@@ -59,15 +60,26 @@ func (l *LoginReq) Login(ctx context.Context) (map[string]string, error) {
 	}
 
 	// id is UUID(16 bytes) Google's UUID.
+	// Query user and get password hash
 	var id uuid.UUID
 	var role string
+	var storedPasswordHash string
+	err = db.QueryRow(ctx, "SELECT id, role, password FROM users WHERE username = $1 OR email = $2", l.UserName, l.Email).Scan(&id, &role, &storedPasswordHash)
 
-	err = db.QueryRow(ctx, "SELECT id, role FROM users WHERE (username = $1 OR email = $2) AND password = $3", l.UserName, l.Email, l.Password).Scan(&id, &role)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Login: failed to query user: %v", err), err)
 		return nil, fmt.Errorf("invalid username/email or password")
 	}
 
+	// Verify password using bcrypt
+	err = bcrypt.CompareHashAndPassword([]byte(storedPasswordHash), []byte(l.Password))
+	if err != nil {
+		// Password doesn't match
+		logger.Info("Login: invalid password attempt")
+		return nil, fmt.Errorf("invalid username/email or password")
+	}
+
+	// Password verified, get user details
 	user, err := dbutil.UserById(ctx, id.String(), db)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Login: failed to get user by id: %v", err), err)
