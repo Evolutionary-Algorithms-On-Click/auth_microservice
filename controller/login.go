@@ -1,11 +1,20 @@
 package controller
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"evolve/modules"
 	"evolve/util"
 	"net/http"
+	"os"
 	"time"
 )
+
+func generateCSRFToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.StdEncoding.EncodeToString(b)
+}
 
 func Login(res http.ResponseWriter, req *http.Request) {
 
@@ -41,6 +50,19 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	})
 
 	delete(user, "token")
+
+	if os.Getenv("CSRF_PROTECTION") == "true" {
+		csrfToken := generateCSRFToken()
+		http.SetCookie(res, &http.Cookie{
+			Name:     "csrf_token",
+			Value:    csrfToken,
+			Path:     "/",
+			HttpOnly: false,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		res.Header().Set("X-CSRF-Token", csrfToken)
+	}
 
 	util.JSONResponse(res, http.StatusOK, "Success", user)
 }
