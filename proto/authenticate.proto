@@ -12,6 +12,7 @@ service Authenticate {
 // TokenValidateRequest is the request message for the Authenticate method.
 message TokenValidateRequest {
     string token = 1;
+    optional string csrf_token = 2;
 }
 
 // TokenValidateResponse is the response message for the Authenticate method.
@@ -22,4 +23,5 @@ message TokenValidateResponse {
     string email = 4;
     string userName = 5;
     string fullName = 6;
+    
 }
