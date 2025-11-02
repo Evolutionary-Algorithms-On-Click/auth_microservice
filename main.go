@@ -15,6 +15,8 @@ import (
 	"os"
 	"runtime"
 
+	"reflect"
+
 	"aidanwoods.dev/go-paseto"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
@@ -27,6 +29,8 @@ var (
 
 func serveHTTP() {
 	logger := util.SharedLogger
+
+	fmt.Println("type of logger", reflect.TypeOf(&logger))
 	// Register routes.
 	http.HandleFunc(routes.TEST, controller.Test)
 	http.HandleFunc(routes.REGISTER, controller.Register)
@@ -46,11 +50,18 @@ func serveHTTP() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
+		ExposedHeaders:   []string{"X-CSRF-Token"},
 	}).Handler(http.DefaultServeMux)
 
 	handler := util.SharedLogger.LogMiddleware(corsHandler)
+	var finalHandler http.Handler
+	if os.Getenv("CSRF_PROTECTION") == "true" {
+		finalHandler = util.CSRFMiddleware(handler)
+	} else {
+		finalHandler = handler
+	}
 
-	if err := http.ListenAndServe(HTTP_PORT, handler); err != nil {
+	if err := http.ListenAndServe(HTTP_PORT, finalHandler); err != nil {
 		logger.Error(fmt.Sprintf("Failed to start server: %v", err), err)
 		return
 	}
@@ -75,15 +86,15 @@ func serveGRPC() {
 
 func main() {
 
+	logger, err := util.InitLogger(os.Getenv("ENV"))
+	util.SharedLogger = logger
 	HTTP_PORT = fmt.Sprintf(":%v", os.Getenv("HTTP_PORT"))
 	GRPC_PORT = fmt.Sprintf(":%v", os.Getenv("GRPC_PORT"))
 
-	logger, err := util.InitLogger(os.Getenv("ENV"))
 	if err != nil {
 		fmt.Println("failed to init logger:", err)
 		return
 	}
-	util.SharedLogger = logger
 
 	// Initialize db with schema.
 	if err := db.InitDb(context.Background()); err != nil {

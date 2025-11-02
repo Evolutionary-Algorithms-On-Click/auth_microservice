@@ -7,6 +7,7 @@ import (
 	"evolve/proto"
 	"evolve/util/auth"
 	dbutil "evolve/util/db/user"
+	"os"
 )
 
 type GRPCServer struct {
@@ -15,6 +16,7 @@ type GRPCServer struct {
 
 func (*GRPCServer) Auth(ctx context.Context, req *proto.TokenValidateRequest) (*proto.TokenValidateResponse, error) {
 	user, err := auth.ValidateToken(req.GetToken())
+
 	if err != nil {
 		return &proto.TokenValidateResponse{
 			Valid: false,
@@ -26,6 +28,21 @@ func (*GRPCServer) Auth(ctx context.Context, req *proto.TokenValidateRequest) (*
 		return &proto.TokenValidateResponse{
 			Valid: false,
 		}, err
+	}
+
+	//checking for CSRF token
+	if os.Getenv("CSRF_PROTECTION") == "true" && req.GetCsrfToken() != "" && user["csrf_token"] != "" {
+
+		csrfToken := req.GetCsrfToken()
+		if csrfToken != user["csrf_token"] {
+			return &proto.TokenValidateResponse{
+				Valid: false,
+			}, nil
+		}
+	} else {
+		return &proto.TokenValidateResponse{
+			Valid: false,
+		}, nil
 	}
 
 	userData, err := dbutil.UserById(ctx, user["id"], db)
