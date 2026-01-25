@@ -11,8 +11,8 @@ services:
       - "5001:5001"
     environment:
       DATABASE_URL: postgresql://root@host.docker.internal:26257/defaultdb?sslmode=disable
-      MAILER_EMAIL: "thanuskumaara@gmail.com"
-      MAILER_PASSWORD: "ejjn nlzj mdba xwgn"
+      MAILER_EMAIL: "<MAILER-EMAIL>"
+      MAILER_PASSWORD: "<MAILER-PASSWORD>"
       FRONTEND_URL: http://localhost:3000
       HTTP_PORT: 5000
       GRPC_PORT: 5001
