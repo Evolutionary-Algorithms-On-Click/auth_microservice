@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"evolve/config"
 	"evolve/controller"
 	grpcserver "evolve/controller/grpc"
-	"evolve/db"
 	pb "evolve/proto"
 	"evolve/routes"
 	"evolve/util"
@@ -86,10 +84,10 @@ func main() {
 	util.SharedLogger = logger
 
 	// Initialize db with schema.
-	if err := db.InitDb(context.Background()); err != nil {
-		logger.Error("failed to init db", err)
-		return
-	}
+	// if err := db.InitDb(context.Background()); err != nil {
+	// 	logger.Error("failed to init db", err)
+	// 	return
+	// }
 
 	// Initialize key.
 	key := paseto.NewV4AsymmetricSecretKey()
