@@ -7,6 +7,8 @@ import (
 	"evolve/util"
 	dbutil "evolve/util/db/user"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type VerifyReq struct {
@@ -63,8 +65,14 @@ func (r *VerifyReq) Verify(ctx context.Context, user map[string]string) error {
 		return fmt.Errorf("invalid otp")
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user["password"]), bcrypt.DefaultCost)
+	if err != nil {
+		logger.Error(fmt.Sprintf("RegisterVerify: failed to hash password: %v", err), err)
+		return fmt.Errorf("something went wrong")
+	}
+
 	// Insert user into user table.
-	if _, err := db.Exec(ctx, "INSERT INTO users (email, userName, fullName, password) VALUES($1, $2, $3, $4)", user["email"], user["userName"], user["fullName"], user["password"]); err != nil {
+	if _, err := db.Exec(ctx, "INSERT INTO users (email, userName, fullName, password) VALUES($1, $2, $3, $4)", user["email"], user["userName"], user["fullName"], string(hashedPassword)); err != nil {
 		logger.Error(fmt.Sprintf("RegisterVerify: failed to insert into users: %v", err), err)
 		return fmt.Errorf("something went wrong")
 	}
